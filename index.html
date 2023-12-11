@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>RSS Resolver</title>
     <style>
         :root {
@@ -19,6 +21,12 @@
             padding: .5rem 1rem;
         }
 
+        #copy-all {
+            padding: .5rem 1rem;
+            border: 0;
+            border-radius: 0;
+        }
+
         dl {
             border: solid 1px var(--font-color);
             border-radius: 5px;
@@ -26,7 +34,24 @@
         }
 
         dd {
+            position: relative;
             overflow-wrap: anywhere;
+        }
+
+        /*code {*/
+        /*    padding-top: 2em;*/
+        /*    display: -webkit-box;*/
+        /*    overflow: hidden;*/
+        /*    text-overflow: ellipsis;*/
+        /*    word-wrap: break-word;*/
+        /*    max-height: calc(1.5em * 3);*/
+        /*    line-clamp: 3;*/
+        /*    -webkit-line-clamp: 3;*/
+        /*}*/
+        button.copy-download-url-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
         }
     </style>
 </head>
@@ -34,8 +59,11 @@
 <body>
     <header>
         <select name="select_show"></select>
+        <button id="copy-all" disabled>Copy All</button>
     </header>
     <main id="content"></main>
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"
+            integrity="sha256-4XodgW4TwIJuDtf+v6vDJ39FVxI0veC/kSCCmnFp7ck=" crossorigin="anonymous"></script>
     <script>
         ; (() => {
             const shows = [
@@ -49,7 +77,9 @@
             }
 
             const elContent = document.getElementById('content')
+            const copyAllBtn = document.getElementById('copy-all')
             const elSelectShow = document.querySelector('select[name=select_show]')
+
 
             let options = '<option value="">select show</option>'
             shows.forEach(([name, url]) => options += `<option value="${name},${url}">${name}</option>`)
@@ -63,9 +93,24 @@
                     elContent.innerHTML = `loading <${name}> ...`
                     const episodes = await fetchEpisodeInfo(name, url)
                     episodes.forEach((info, id) => content += createEpisodeElement(name, info, id))
+                    copyAllBtn ? copyAllBtn.disabled = false: null
                 }
 
                 elContent.innerHTML = content
+
+                new ClipboardJS('.copy-download-url-btn');
+            })
+
+            copyAllBtn.addEventListener('click', e => {
+                const copyUrlBtn = document.querySelectorAll('.copy-download-url-btn')
+                const url_list = Array.from(copyUrlBtn).map(i =>{
+                    return i.getAttribute('data-clipboard-text')
+                })
+                new ClipboardJS('#copy-all', {
+                    text: function(trigger) {
+                        return url_list.join('\n')
+                    }
+                });
             })
 
             async function fetchEpisodeInfo(name, url) {
@@ -96,6 +141,7 @@
             }
 
             function createEpisodeElement(name, info, index) {
+                const target_id = `${name}-${index}` ? `${name}-${index}`.replace(/\s/g, '') : '';
                 return `
 <dl data-episode="${name}" data-id="${index}">
     <dt>Title</dt>
@@ -109,6 +155,10 @@
     <dt>URL</dt>
     <dd>
         <code>${info.url}</code>
+        <button class="copy-download-url-btn"
+        data-clipboard-text="${info.url}">
+          Copy Magnet URL to clipboard
+        </button>
     </dd>
 </dl>
 `
