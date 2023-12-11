@@ -26,11 +26,12 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
-          curl -s -o soso_no_frieren.rss.xml https://www.dmhy.org/topics/list?keyword=%E8%91%AC%E9%80%81%E7%9A%84%E8%8A%99%E8%8E%89%E8%8E%B2&team_id=816&order=date-desc
-          curl -s -o jujutsu_kaisen.rss.xml https://www.dmhy.org/topics/rss/rss.xml?keyword=jujutsu+kaisen&sort_id=0&team_id=657&order=date-desc
-          curl -s -o spy_family_s02.rss.xml https://www.dmhy.org/topics/rss/rss.xml?keyword=spy+family+Season+2+%E7%AE%80%E4%BD%93%E5%86%85%E5%B5%8C&sort_id=0&team_id=619&order=date-desc
           git config --global user.email "8305727+PIK4@users.noreply.github.com"
           git config --global user.name "PIK4"
-          git add soso_no_frieren.rss.xml jujutsu_kaisen.rss.xml spy_family_s02.rss.xml
-          git commit -m 'Update RSS subcribes'
+          set -xe && \
+          curl -s -o soso_no_frieren.rss.xml https://www.dmhy.org/topics/rss/rss.xml?keyword=%E8%91%AC%E9%80%81%E7%9A%84%E8%8A%99%E8%8E%89%E8%8E%B2&team_id=816&order=date-desc && \
+          curl -s -o jujutsu_kaisen.rss.xml https://www.dmhy.org/topics/rss/rss.xml?keyword=jujutsu+kaisen&sort_id=0&team_id=657&order=date-desc && \
+          curl -s -o spy_family_s02.rss.xml https://www.dmhy.org/topics/rss/rss.xml?keyword=spy+family+Season+2+%E7%AE%80%E4%BD%93%E5%86%85%E5%B5%8C&sort_id=0&team_id=619&order=date-desc && \
+          git add soso_no_frieren.rss.xml jujutsu_kaisen.rss.xml spy_family_s02.rss.xml && \
+          git commit -m 'Update RSS subcribes' && \
           git push
