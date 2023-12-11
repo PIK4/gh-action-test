@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS Resolver</title>
+    <style>
+        :root {
+            --font-color: whitesmoke;
+        }
+
+        body {
+            background-color: black;
+            color: var(--font-color);
+        }
+
+        select {
+            padding: .5rem 1rem;
+        }
+
+        dl {
+            border: solid 1px var(--font-color);
+            border-radius: 5px;
+            padding: 1rem;
+        }
+
+        dd {
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <select name="select_show"></select>
+    </header>
+    <main id="content"></main>
+    <script>
+        ; (() => {
+            const shows = [
+                ['soso no frieren', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/soso_no_frieren.rss.xml']
+            ]
+            const app = {
+                cache: {},
+                selected: {}
+            }
+
+            const elContent = document.getElementById('content')
+            const elSelectShow = document.querySelector('select[name=select_show]')
+
+            let options = '<option value="">select show</option>'
+            shows.forEach(([name, url]) => options += `<option value="${name},${url}">${name}</option>`)
+            elSelectShow.innerHTML = options
+
+            elSelectShow.addEventListener('change', async e => {
+                const { target: { value } } = e
+                const [name, url] = value.split(',')
+                let content = ''
+                if (url) {
+                    elContent.innerHTML = `loading <${name}> ...`
+                    const episodes = await fetchEpisodeInfo(name, url)
+                    episodes.forEach((info, id) => content += createEpisodeElement(name, info, id))
+                }
+
+                elContent.innerHTML = content
+            })
+
+            async function fetchEpisodeInfo(name, url) {
+                if (!app.cache[name]) {
+                    app.cache[name] = await fetch(url).then(r => r.text()).then(xmlText => {
+                        const xmlDom = (new DOMParser()).parseFromString(xmlText, 'text/xml')
+
+                        const items = []
+                        xmlDom.querySelectorAll('item').forEach(i => {
+                            const enclosure = i.querySelector('enclosure').attributes
+                            items.push({ 
+                                title: i.querySelector('title').textContent, 
+                                reference: i.querySelector('link').textContent, 
+                                publish_at: new Date(i.querySelector('pubDate').textContent), 
+                                resource_type: enclosure.type.nodeValue, 
+                                url: enclosure.url.nodeValue
+                             })
+                        })
+
+                        return items
+                    })
+
+                    console.log('fetched episode info:', name)
+                    console.table(app.cache[name])
+                }
+
+                return app.cache[name]
+            }
+
+            function createEpisodeElement(name, info, index) {
+                return `
+<dl data-episode="${name}" data-id="${index}">
+    <dt>Title</dt>
+    <dd>${info.title}</dd>
+    <dt>Publish at</dt>
+    <dd>${info.publish_at}</dd>
+    <dt>Reference</dt>
+    <dd>${info.reference}</dd>
+    <dt>Resource type</dt>
+    <dd>${info.resource_type}</dd>
+    <dt>URL</dt>
+    <dd>
+        ${info.url}
+    </dd>
+</dl>
+`
+            }
+        })()
+    </script>
+</body>
+
+</html>
