@@ -6,9 +6,7 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ "test" ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,9 +26,9 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
-          curl https://www.dmhy.org/topics/rss/rss.xml\?keyword\=%E8%91%AC%E9%80%81%E7%9A%84%E8%8A%99%E8%8E%89%E8%8E%B2%7C%E8%91%AC%E9%80%81%E3%81%AE%E3%83%95%E3%83%AA%E3%83%BC%E3%83%AC%E3%83%B3\&team_id\=816\&order\=date-desc -o soso_no_frieren.rss.xml
-           git config --global user.email "8305727+PIK4@users.noreply.github.com"
-           git config --global user.name "PIK4"
+          curl -s -o soso_no_frieren.rss.xml https://www.dmhy.org/topics/rss/rss.xml\?keyword\=%E8%91%AC%E9%80%81%E7%9A%84%E8%8A%99%E8%8E%89%E8%8E%B2%7C%E8%91%AC%E9%80%81%E3%81%AE%E3%83%95%E3%83%AA%E3%83%BC%E3%83%AC%E3%83%B3\&team_id\=816\&order\=date-desc
+          git config --global user.email "8305727+PIK4@users.noreply.github.com"
+          git config --global user.name "PIK4"
           git add soso_no_frieren.rss.xml
           git commit -m 'Update soso_no_frieren.rss.xml'
           git push
