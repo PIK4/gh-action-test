@@ -9,10 +9,11 @@
     <style>
         :root {
             --font-color: whitesmoke;
+            --global-bg-color: black;
         }
 
         body {
-            background-color: black;
+            background-color: var(--global-bg-color);
             color: var(--font-color);
         }
 
@@ -24,7 +25,7 @@
         header>select,
         header>button {
             font-size: 1rem;
-            background-color: transparent;
+            background-color: var(--global-bg-color);
             padding: .5rem 1rem;
             color: var(--font-color);
             border: solid 1px var(--font-color);
