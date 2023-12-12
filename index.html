@@ -28,14 +28,38 @@
             gap: .5rem;
         }
 
-        header>select,
-        header>button {
-            font-size: 1rem;
+        button,
+        .function-button {
+            display: block;
+            padding: .25rem .5rem;
+            min-width: max-content;
             background-color: var(--global-bg-color);
-            padding: .5rem 1rem;
             color: var(--global-color);
             border: solid 1px var(--global-color);
             border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        button:active,
+        .function-button:active {
+            background-color: var(--global-color);
+            color: var(--global-bg-color);
+        }
+
+        .function-button>select,
+        .function-button>select:focus-visible {
+            background-color: var(--global-bg-color);
+            color: var(--global-color);
+            font-size: 1rem;
+            margin: 0;
+            padding: 0;
+            border: none;
+            outline-style: none;
+        }
+
+        .function-button>select:active {
+            background-color: var(--global-color);
+            color: var(--global-bg-color);
         }
 
         section {
@@ -65,55 +89,63 @@
             gap: 1rem;
         }
 
-        button {
-            background-color: transparent;
-            color: var(--global-color);
-            border: solid 1px var(--global-color);
+        .resource_url button {
+            padding: .125rem .5rem;
             border-radius: 3px;
-            padding: 0.3rem 0.5rem;
-            min-width: max-content;
-        }
-
-        button:active {
-            background-color: var(--global-color);
-            color: black;
         }
     </style>
 </head>
 
 <body>
     <header>
-        <select name="select_show"></select>
-        <button id="select-all">Select All</button>
-        <button id="reverse-selected">Reverse</button>
-        <button id="copy-selected">Copy Selected</button>
+        <x-dropdown-list id="shows-selector" class="function-button">
+            <select></select>
+        </x-dropdown-list>
+        <button id="select-all" class="function-button">Select All</button>
+        <button id="reverse-selected" class="function-button">Reverse</button>
+        <button id="copy-selected" class="function-button">Copy Selected</button>
     </header>
     <main id="content"></main>
     <script>
+        /**
+         * 
+         * @typedef {Object} App 
+         * @property {Map<String|'show-name',String|'rss-url'>} shows
+         * @property {Map<String|'episode-name',EpisodeInfo>} cache
+         * @property {Map<String|'selected-id',EpisodeInfo>} selected
+         * @property {Boolean} useCustomElement
+         * 
+         * 
+         * @typedef {Object} EpisodeInfo
+         * @property {String} title
+         * @property {Date} publish_at
+         * @property {String} reference
+         * @property {String} resource_type
+         * @property {String} url
+         * 
+         */
         ; (() => {
             /**
              * Settings
              */
 
             /** 
-             * @type {Array<[(String|'show-name'), (String|'rss-url')]>}
-             */
-            const shows = new Map([
-                ['soso no frieren', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/soso_no_frieren.rss.xml'],
-                ['jujutsu kaisen', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/jujutsu_kaisen.rss.xml'],
-                ['spy x framily s02', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/spy_family_s02.rss.xml'],
-            ])
-            /** 
              * @type {App} 
              */
             const app = {
+                shows: new Map([
+                    ['soso no frieren', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/soso_no_frieren.rss.xml'],
+                    ['jujutsu kaisen', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/jujutsu_kaisen.rss.xml'],
+                    ['spy x framily s02', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/spy_family_s02.rss.xml'],
+                ]),
                 cache: new Map(),
-                selected: new Map()
+                selected: new Map(),
+                useCustomElement: new URL(location).searchParams.get('ce') === '0' ? false : true
             }
             // main content element
             const elMainContent = document.querySelector('#content')
             // shows-selector element
-            const elShowSelector = document.querySelector('select[name=select_show]')
+            const elShowSelector = document.querySelector('#shows-selector select')
             // select-all button element
             const elSelectAll = document.querySelector('#select-all')
             // select-all button element
@@ -122,24 +154,23 @@
             const elCopySelected = document.querySelector('#copy-selected')
 
             /**
-             * Page setup
+             * Page Setup
              */
 
-            // setup shows-selector options
-            let options = '<option value="">Select Show</option>'
-            for (const [name] of shows) {
+            // setup shows-selector
+            let options = '<option value="">-- Select Show --</option>'
+            for (const [name] of app.shows) {
                 options += `<option value="${name}">${name}</option>`
             }
             elShowSelector.innerHTML = options
-
             // listen shows-selector change event
             elShowSelector.addEventListener('change', async e => {
                 const { target: { value: name } } = e
                 // clear selected
                 app.selected.clear()
 
-                if (shows.has(name)) {
-                    elMainContent.innerHTML = `loading "${name}" ...`
+                if (app.shows.has(name)) {
+                    elMainContent.innerHTML = `Loading "${name}" Episodes Resource ...`
 
                     const episodes = await fetchEpisodeInfo(name)
                     elMainContent.innerHTML = episodes.reduce(
@@ -199,7 +230,7 @@
             })).observe(elMainContent, { childList: true })
 
             /**
-             * Define functions
+             * Define Functions
              */
 
             /**
@@ -221,7 +252,7 @@
             }
 
             /**
-             * 
+             * @param {String} text
              */
             async function copyToClipboard(text) {
                 try {
@@ -238,7 +269,7 @@
              */
             async function fetchEpisodeInfo(name) {
                 if (!app.cache.get(name)) {
-                    const episodes = await fetch(shows.get(name)).then(r => r.text()).then(xmlText => {
+                    const episodes = await fetch(app.shows.get(name)).then(r => r.text()).then(xmlText => {
                         const xmlDom = (new DOMParser()).parseFromString(xmlText, 'text/xml')
 
                         const items = []
@@ -270,45 +301,29 @@
              */
             function templateEpisodeInfo(name, info, index) {
                 return `
-<section data-name="${name}" data-id="${index}">
-    <dl>
-        <dt>Title</dt>
-        <dd>${info.title}</dd>
-        <dt>Publish at</dt>
-        <dd>${info.publish_at.toLocaleString()}</dd>
-        <dt>Reference</dt>
-        <dd><cite><a href="${info.reference}">${new URL(info.reference).host}</a></cite></dd>
-        <dt>URL</dt>
-        <dd>
-            <div class="resource_url">
-                <button title="click to copy!" data-copy="${info.url}">copy</button>
-                <details>
-                    <summary><code>${info.resource_type}</code></summary>
-                    <code>${info.url}</code>
-                </details>
-            </div>
-        </dd>
-    </dl>
-</section>`
+                    <section data-name="${name}" data-id="${index}">
+                        <dl>
+                            <dt>Title</dt>
+                            <dd>${info.title}</dd>
+                            <dt>Publish at</dt>
+                            <dd>${info.publish_at.toLocaleString()}</dd>
+                            <dt>Reference</dt>
+                            <dd><cite><a href="${info.reference}">${new URL(info.reference).host}</a></cite></dd>
+                            <dt>URL</dt>
+                            <dd>
+                                <div class="resource_url">
+                                    <button title="click to copy!" data-copy="${info.url}">copy</button>
+                                    <details>
+                                        <summary><code>${info.resource_type}</code></summary>
+                                        <code>${info.url}</code>
+                                    </details>
+                                </div>
+                            </dd>
+                        </dl>
+                    </section>`
             }
+
         })()
-
-
-        /**
-         * 
-         * @typedef {Object} App 
-         * @property {{[String|'episode-name': EpisodeInfo}} cache
-         * @property {{[String|'selected-episode': EpisodeInfo}} selected
-         * 
-         * 
-         * @typedef {Object} EpisodeInfo
-         * @property {String} title
-         * @property {Date} publish_at
-         * @property {String} reference
-         * @property {String} resource_type
-         * @property {String} url
-         * 
-         */
     </script>
 </body>
 
