@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html>
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>RSS Resolver</title>
     <style>
@@ -17,41 +16,60 @@
             color: var(--font-color);
         }
 
-        select {
-            padding: .5rem 1rem;
+        header {
+            display: inline-flex;
+            gap: .5rem;
         }
 
-        #copy-all {
+        header>select,
+        header>button {
+            font-size: 1rem;
+            background-color: transparent;
             padding: .5rem 1rem;
-            border: 0;
-            border-radius: 0;
-        }
-
-        dl {
+            color: var(--font-color);
             border: solid 1px var(--font-color);
             border-radius: 5px;
-            padding: 1rem;
+        }
+
+        section {
+            border: solid 1px var(--font-color);
+            border-radius: 5px;
+            padding: .5rem 1rem;
+            margin: 1rem;
+        }
+
+        section[data-selected=true] {
+            border-color: springgreen;
         }
 
         dd {
-            position: relative;
             overflow-wrap: anywhere;
         }
 
-        /*code {*/
-        /*    padding-top: 2em;*/
-        /*    display: -webkit-box;*/
-        /*    overflow: hidden;*/
-        /*    text-overflow: ellipsis;*/
-        /*    word-wrap: break-word;*/
-        /*    max-height: calc(1.5em * 3);*/
-        /*    line-clamp: 3;*/
-        /*    -webkit-line-clamp: 3;*/
-        /*}*/
-        button.copy-download-url-btn {
-            position: absolute;
-            top: 0;
-            right: 0;
+        a,
+        a:active,
+        a:visited {
+            color: var(--font-color);
+        }
+
+        .resource_url {
+            display: inline-flex;
+            align-items: start;
+            gap: 1rem;
+        }
+
+        button {
+            background-color: transparent;
+            color: var(--font-color);
+            border: solid 1px var(--font-color);
+            border-radius: 3px;
+            padding: 0.3rem 0.5rem;
+            min-width: max-content;
+        }
+
+        button:active {
+            background-color: var(--font-color);
+            color: black;
         }
     </style>
 </head>
@@ -59,111 +77,231 @@
 <body>
     <header>
         <select name="select_show"></select>
-        <button id="copy-all" disabled>Copy All</button>
+        <button id="select-all">Select All</button>
+        <button id="reverse-selected">Reverse</button>
+        <button id="copy-selected">Copy Selected</button>
     </header>
     <main id="content"></main>
-    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.11/dist/clipboard.min.js"
-            integrity="sha256-4XodgW4TwIJuDtf+v6vDJ39FVxI0veC/kSCCmnFp7ck=" crossorigin="anonymous"></script>
     <script>
         ; (() => {
-            const shows = [
+            /**
+             * Settings
+             */
+
+            /** 
+             * @type {Array<[(String|'show-name'), (String|'rss-url')]>}
+             */
+            const shows = new Map([
                 ['soso no frieren', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/soso_no_frieren.rss.xml'],
                 ['jujutsu kaisen', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/jujutsu_kaisen.rss.xml'],
                 ['spy x framily s02', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/spy_family_s02.rss.xml'],
-            ]
+            ])
+            /** 
+             * @type {App} 
+             */
             const app = {
-                cache: {},
-                selected: {}
+                cache: new Map(),
+                selected: new Map()
+            }
+            // main content element
+            const elMainContent = document.querySelector('#content')
+            // shows-selector element
+            const elShowSelector = document.querySelector('select[name=select_show]')
+            // select-all button element
+            const elSelectAll = document.querySelector('#select-all')
+            // select-all button element
+            const elReverseSelected = document.querySelector('#reverse-selected')
+            // select-all button element
+            const elCopySelected = document.querySelector('#copy-selected')
+
+            /**
+             * Page setup
+             */
+
+            // setup shows-selector options
+            let options = '<option value="">Select Show</option>'
+            for (const [name] of shows) {
+                options += `<option value="${name}">${name}</option>`
+            }
+            elShowSelector.innerHTML = options
+
+            // listen shows-selector change event
+            elShowSelector.addEventListener('change', async e => {
+                const { target: { value: name } } = e
+                // clear selected
+                app.selected.clear()
+
+                if (shows.has(name)) {
+                    elMainContent.innerHTML = `loading "${name}" ...`
+
+                    const episodes = await fetchEpisodeInfo(name)
+                    elMainContent.innerHTML = episodes.reduce(
+                        (s, info, id) => s + templateEpisodeInfo(name, info, id),
+                        ''
+                    )
+                } else {
+                    elMainContent.innerHTML = ''
+                }
+            })
+
+            // listen selecte-all button click event
+            elSelectAll.addEventListener('click', () => {
+                document.querySelectorAll('section[data-name]').forEach(
+                    el => changeSectionSelectState(el, 'true')
+                )
+            })
+
+            // listen reverse-selected button click event
+            elReverseSelected.addEventListener('click', () => {
+                document.querySelectorAll('section[data-name]').forEach(
+                    el => changeSectionSelectState(el, el.dataset.selected === 'true' ? 'false' : 'true')
+                )
+            })
+
+            // listen copy-selected button click event
+            elCopySelected.addEventListener('click', () => {
+                let urls = ''
+                app.selected.forEach(info => {
+                    urls += info.url + '\n'
+                })
+                copyToClipboard(urls)
+            })
+
+            // observe main content mutation
+            new MutationObserver(mutations => mutations.forEach(mutation => {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(node => {
+                        // except SECTION element
+                        if (node.nodeName !== 'SECTION') return;
+                        // resource-url-block element
+                        const elResourceUrlBlock = node.querySelector('.resource_url')
+                        // listen episode-info-section click event
+                        node.addEventListener('click', async e => {
+                            const { target } = e
+                            // except resource-url-block inside click event
+                            if (elResourceUrlBlock.contains(target)) return;
+                            // filp select state
+                            changeSectionSelectState(node)
+                        })
+                        // listen inside copy-button click event
+                        node.querySelectorAll('button[data-copy]').forEach(
+                            elCopyButton => elCopyButton.addEventListener('click', () => copyToClipboard(elCopyButton.dataset.copy))
+                        )
+                    })
+                }
+            })).observe(elMainContent, { childList: true })
+
+            /**
+             * Define functions
+             */
+
+            /**
+             * @param {HTMLElement} elSection
+             * @param {'false'|'true'|'flip'} state
+             */
+            async function changeSectionSelectState(elSection, state = 'flip') {
+                const { dataset: { name, id, selected } } = elSection
+                const episodes = await fetchEpisodeInfo(name)
+
+                state = state === 'flip' ? { 'true': 'false', 'false': 'true' }[selected || 'false'] : state
+                elSection.dataset.selected = state
+
+                if (state === 'true') {
+                    app.selected.set(id, episodes[id])
+                } else {
+                    app.selected.delete(id)
+                }
             }
 
-            const elContent = document.getElementById('content')
-            const copyAllBtn = document.getElementById('copy-all')
-            const elSelectShow = document.querySelector('select[name=select_show]')
-
-
-            let options = '<option value="">select show</option>'
-            shows.forEach(([name, url]) => options += `<option value="${name},${url}">${name}</option>`)
-            elSelectShow.innerHTML = options
-
-            elSelectShow.addEventListener('change', async e => {
-                const { target: { value } } = e
-                const [name, url] = value.split(',')
-                let content = ''
-                if (url) {
-                    elContent.innerHTML = `loading <${name}> ...`
-                    const episodes = await fetchEpisodeInfo(name, url)
-                    episodes.forEach((info, id) => content += createEpisodeElement(name, info, id))
-                    copyAllBtn ? copyAllBtn.disabled = false: null
+            /**
+             * 
+             */
+            async function copyToClipboard(text) {
+                try {
+                    await navigator.clipboard.writeText(text)
+                    console.log('copyToClipboard', 'ok', text)
+                } catch (e) {
+                    console.log('copyToClipboard', e)
                 }
+            }
 
-                elContent.innerHTML = content
-
-                new ClipboardJS('.copy-download-url-btn');
-            })
-
-            copyAllBtn.addEventListener('click', e => {
-                const copyUrlBtn = document.querySelectorAll('.copy-download-url-btn')
-                const url_list = Array.from(copyUrlBtn).map(i =>{
-                    return i.getAttribute('data-clipboard-text')
-                })
-                new ClipboardJS('#copy-all', {
-                    text: function(trigger) {
-                        return url_list.join('\n')
-                    }
-                });
-            })
-
-            async function fetchEpisodeInfo(name, url) {
-                if (!app.cache[name]) {
-                    app.cache[name] = await fetch(url).then(r => r.text()).then(xmlText => {
+            /**
+             * @param {String} name
+             * @return {Promise<EpisodeInfo[]>}
+             */
+            async function fetchEpisodeInfo(name) {
+                if (!app.cache.get(name)) {
+                    const episodes = await fetch(shows.get(name)).then(r => r.text()).then(xmlText => {
                         const xmlDom = (new DOMParser()).parseFromString(xmlText, 'text/xml')
 
                         const items = []
                         xmlDom.querySelectorAll('item').forEach(i => {
                             const enclosure = i.querySelector('enclosure').attributes
-                            items.push({ 
-                                title: i.querySelector('title').textContent, 
-                                reference: i.querySelector('link').textContent, 
-                                publish_at: new Date(i.querySelector('pubDate').textContent), 
-                                resource_type: enclosure.type.nodeValue, 
+                            items.push({
+                                title: i.querySelector('title').textContent,
+                                reference: i.querySelector('link').textContent,
+                                publish_at: new Date(i.querySelector('pubDate').textContent),
+                                resource_type: enclosure.type.nodeValue,
                                 url: enclosure.url.nodeValue
-                             })
+                            })
                         })
 
                         return items
                     })
-
-                    console.log('fetched episode info:', name)
-                    console.table(app.cache[name])
+                    app.cache.set(name, episodes)
+                    // console.log('fetched episode info:', name)
+                    // console.table(app.cache.get(name))
                 }
 
-                return app.cache[name]
+                return app.cache.get(name)
             }
 
-            function createEpisodeElement(name, info, index) {
-                const target_id = `${name}-${index}` ? `${name}-${index}`.replace(/\s/g, '') : '';
+            /**
+             * @param {String} name
+             * @param {EpisodeInfo} info
+             * @param {Number} index
+             */
+            function templateEpisodeInfo(name, info, index) {
                 return `
-<dl data-episode="${name}" data-id="${index}">
-    <dt>Title</dt>
-    <dd>${info.title}</dd>
-    <dt>Publish at</dt>
-    <dd>${info.publish_at}</dd>
-    <dt>Reference</dt>
-    <dd>${info.reference}</dd>
-    <dt>Resource type</dt>
-    <dd>${info.resource_type}</dd>
-    <dt>URL</dt>
-    <dd>
-        <code>${info.url}</code>
-        <button class="copy-download-url-btn"
-        data-clipboard-text="${info.url}">
-          Copy Magnet URL to clipboard
-        </button>
-    </dd>
-</dl>
-`
+<section data-name="${name}" data-id="${index}">
+    <dl>
+        <dt>Title</dt>
+        <dd>${info.title}</dd>
+        <dt>Publish at</dt>
+        <dd>${info.publish_at.toLocaleString()}</dd>
+        <dt>Reference</dt>
+        <dd><cite><a href="${info.reference}">${new URL(info.reference).host}</a></cite></dd>
+        <dt>URL</dt>
+        <dd>
+            <div class="resource_url">
+                <button title="click to copy!" data-copy="${info.url}">copy</button>
+                <details>
+                    <summary><code>${info.resource_type}</code></summary>
+                    <code>${info.url}</code>
+                </details>
+            </div>
+        </dd>
+    </dl>
+</section>`
             }
         })()
+
+
+        /**
+         * 
+         * @typedef {Object} App 
+         * @property {{[String|'episode-name': EpisodeInfo}} cache
+         * @property {{[String|'selected-episode': EpisodeInfo}} selected
+         * 
+         * 
+         * @typedef {Object} EpisodeInfo
+         * @property {String} title
+         * @property {Date} publish_at
+         * @property {String} reference
+         * @property {String} resource_type
+         * @property {String} url
+         * 
+         */
     </script>
 </body>
 
