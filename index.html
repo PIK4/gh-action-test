@@ -73,7 +73,17 @@
             border-color: springgreen;
         }
 
+        dt {
+            font-weight: bold;
+            padding: .25rem 0;
+        }
+
+        dt::after {
+            content: " :";
+        }
+
         dd {
+            padding: 0 1rem;
             overflow-wrap: anywhere;
         }
 
@@ -322,12 +332,12 @@
                         </dl>
                     </section>`
             }
-            
+
             /**
              * Define Elements
              */
 
-             if (app.useCustomElement) {
+            if (app.useCustomElement) {
                 // x-dropdown-list
                 customElements.define(
                     'x-dropdown-list',
