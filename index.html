@@ -168,9 +168,9 @@
             // listen copy-selected button click event
             elCopySelected.addEventListener('click', () => {
                 let urls = ''
-                app.selected.forEach(info => {
+                for (const [id, info] of app.selected) {
                     urls += info.url + '\n'
-                })
+                }
                 copyToClipboard(urls)
             })
 
