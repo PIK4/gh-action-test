@@ -322,6 +322,166 @@
                         </dl>
                     </section>`
             }
+            
+            /**
+             * Define Elements
+             */
+
+             if (app.useCustomElement) {
+                // x-dropdown-list
+                customElements.define(
+                    'x-dropdown-list',
+                    class extends HTMLElement {
+                        constructor() {
+                            super()
+                            console.log("[x-dropdown-list] constructor: created")
+
+                            this._internal = this.attachInternals()
+                            this.attachShadow({ mode: 'open' })
+
+                            this.bootstrap()
+                        }
+
+                        connectedCallback() {
+                            const flip = { 'true': 'false', 'false': 'true' }
+                            this.getOptionElements().forEach(
+                                el => el.addEventListener('click', () => {
+                                    let { dataset: { name, actived = 'false' } } = el
+
+                                    this.getOptionElements().forEach(i => i.dataset.actived = 'false')
+                                    el.dataset.actived = flip[actived]
+
+                                    this.getMainElement().innerText = name
+
+                                    const elSelect = this.getSelectElement()
+                                    elSelect.value = name
+                                    elSelect.dispatchEvent(new Event('change'))
+                                })
+                            )
+                        }
+
+                        getOptionElements() {
+                            if (!this.elOptions) {
+                                this.elOptions = this.shadowRoot.querySelectorAll('[data-value]')
+                            }
+                            return this.elOptions
+                        }
+
+                        getMainElement() {
+                            if (!this.elMain) {
+                                this.elMain = this.shadowRoot.querySelector('main')
+                            }
+                            return this.elMain
+                        }
+
+                        getDropdownElement() {
+                            if (!this.elDropdown) {
+                                this.elDropdown = this.shadowRoot.querySelector('#dropdown-list')
+                            }
+                            return this.elDropdown
+                        }
+
+                        getSelectElement() {
+                            if (!this.elSelect) {
+                                this.elSelect = this.querySelector('select')
+                            }
+                            return this.elSelect
+                        }
+
+                        bootstrap() {
+                            this.show_dropdown = false
+                            this.actived_option = ''
+                            this.selector_options = []
+                            for (const option of this.querySelectorAll('select option')) {
+                                this.selector_options.push({ name: option.textContent, value: option.value })
+                            }
+
+                            this.shadowRoot.innerHTML = this.template()
+
+                            this.addEventListener('click', () => {
+                                this.show_dropdown = !this.show_dropdown
+
+                                if (this.show_dropdown) {
+                                    this.getMainElement().classList.add('dropdown-open')
+                                } else {
+                                    this.getMainElement().classList.remove('dropdown-open')
+                                }
+                            })
+                        }
+
+                        template() {
+                            let actived_name = ''
+                            let list_items = this.selector_options.map(
+                                ({ name, value }) => {
+                                    let actived = value === this.actived_option
+                                    if (actived) actived_name = name
+                                    return `<li data-value="${value}" data-name="${name}" data-actived="${actived}">${name}</li>`
+                                }
+                            ).join('')
+
+                            return `${this.style()}
+                            <main>${actived_name}</main>
+                            <div id="dropdown-list">
+                                <ul>
+                                    ${list_items}
+                                </ul>
+                            </div>
+                            `
+                        }
+
+                        style() {
+                            return `
+                            <style>
+                                :host {
+                                    --global-color: whitesmoke;
+                                    --global-bg-color: black;
+                                }
+
+                                * {
+                                    margin: 0;
+                                    padding: 0;
+                                }
+
+                                main.dropdown-open ~ #dropdown-list {
+                                    display: block;
+                                }
+
+                                #dropdown-list {
+                                    display: none;
+                                    position: relative;
+                                    width: 0;
+                                    height: 0;
+                                }
+
+                                ul {
+                                    min-width: max-content;
+                                    background-color: var(--global-bg-color);
+                                    color: var(--global-color);
+                                    border: solid 1px var(--global-color);
+                                    border-radius: 5px;
+                                    font-size: 1rem;
+                                }
+
+                                li {
+                                    list-style-type: none;
+                                    padding: .5rem;
+                                }
+
+                                li:not(:first-child)[data-actived="true"],
+                                li:hover {
+                                    background-color: var(--global-color);
+                                    color: var(--global-bg-color);
+                                }
+
+                                li:not(:last-child) {
+                                    border-bottom: solid 1px var(--global-color);
+                                }
+                            </style>`
+                        }
+
+                    }
+                )
+            }
 
         })()
     </script>
