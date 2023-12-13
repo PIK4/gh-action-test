@@ -228,6 +228,13 @@
                 }
                 copyToClipboard(urls)
             })
+            // listen Shortcut to trigger copy-selected event
+            window.addEventListener('keydown', e => {
+                if(e.ctrlKey && e.code === 'KeyC'){
+                    elCopySelected.click()
+                }
+            })
+            elCopySelected.setAttribute('title', 'Or Just Use Shortcut: `Ctrl + C`')
 
             // observe main content mutation
             new MutationObserver(mutations => mutations.forEach(mutation => {
@@ -334,7 +341,7 @@
                             <dt>URL</dt>
                             <dd>
                                 <div class="resource_url">
-                                    <button title="click to copy!" data-copy="${info.url}">copy</button>
+                                    <button title="Click To Copy!" data-copy="${info.url}">copy</button>
                                     <details>
                                         <summary><code>${info.resource_type}</code></summary>
                                         <code>${info.url}</code>
