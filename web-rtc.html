@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Web RTC Test</title>
+
+</head>
+
+<body>
+    <main id="content" style="overflow-wrap: anywhere;"></main>
+    <script>
+
+        const RTCPeerConfig = {
+            'sdpSemantics': 'unified-plan',
+            'iceServers': [{
+                urls: 'stun:stun.l.google.com:19302'
+            }]
+        }
+        const searchParams = new URL(location).searchParams
+        const elMainContent = document.getElementById('content')
+
+        /** @type {RTCPeerConnection} */
+        const peerConn = new RTCPeerConnection(RTCPeerConfig)
+        /** @type {RTCDataChannel} */
+        let dataChannel = null
+        /** @type {RTCSessionDescription} */
+        let sdp = null
+        /** @type {RTCIceCandidate} */
+        let ice = null
+
+            ;
+        ; (async () => {
+
+            // listen data-channel open
+            peerConn.addEventListener('datachannel', onDataChannelOpen)
+            // listen ice
+            peerConn.addEventListener('icecandidate', (e) => {
+                if (!e.candidate) return;
+
+                ice = e.candidate
+
+                console.log('on ICE candidate', e.candidate)
+
+                const url = new URL(location)
+                url.searchParams.set('sdp', btoa(JSON.stringify(sdp)))
+                url.searchParams.set('ice', btoa(JSON.stringify(ice)))
+
+                document.querySelector('#content').innerHTML = `
+                    <div>${JSON.stringify(sdp)}</div>
+                    <div>${url}</div>`
+            })
+
+            if (searchParams.has('sdp')) {
+                const remote_sdp = new RTCSessionDescription(JSON.parse(atob(searchParams.get('sdp'))))
+                const remote_ice = new RTCIceCandidate(JSON.parse(atob(searchParams.get('ice'))))
+
+                // set remote session description
+                await peerConn.setRemoteDescription(remote_sdp)
+
+                // set local session description
+                sdp = await peerConn.createAnswer()
+                await peerConn.setLocalDescription(sdp)
+
+                await peerConn.addIceCandidate(remote_ice)
+
+                if (dataChannel && dataChannel.readyState === 'open') {
+                    dataChannel.send('hello')
+                }
+            } else {
+                // create & listen data-channel open
+                dataChannel = peerConn.createDataChannel('data-channel', {
+                    ordered: true,
+                    reliable: true // Obsolete. See https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/reliable
+                })
+
+                // set local session description
+                sdp = await peerConn.createOffer()
+                console.log('offer sdp', sdp)
+                await peerConn.setLocalDescription(sdp)
+            }
+
+            function onDataChannelOpen(e) {
+                console.log('dataChannel, on open', e)
+
+                dataChannel = e.channel || e.target
+
+                dataChannel.addEventListener('message', e => {
+                    console.log('dataChannel, on message', e)
+                })
+                dataChannel.addEventListener('close', e => {
+                    console.log('dataChannel, on close', e)
+                })
+            }
+        })()
+    </script>
+</body>
+
+</html>
