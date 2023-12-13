@@ -38,6 +38,8 @@
             border: solid 1px var(--global-color);
             border-radius: 5px;
             font-size: 1rem;
+            cursor: pointer;
+            user-select: none;
         }
 
         button:active,
@@ -67,6 +69,7 @@
             border-radius: 5px;
             padding: .5rem 1rem;
             margin-top: 1rem;
+            cursor: pointer;
         }
 
         section[data-selected=true] {
@@ -76,6 +79,7 @@
         dt {
             font-weight: bold;
             padding: .25rem 0;
+            user-select: none;
         }
 
         dt::after {
@@ -85,6 +89,11 @@
         dd {
             padding: 0 1rem;
             overflow-wrap: anywhere;
+        }
+
+        dt,
+        dd {
+            cursor: default;
         }
 
         a,
@@ -102,6 +111,11 @@
         .resource_url button {
             padding: .125rem .5rem;
             border-radius: 3px;
+        }
+
+        summary {
+            cursor: pointer;
+            user-select: none;
         }
     </style>
 </head>
@@ -297,8 +311,6 @@
                         return items
                     })
                     app.cache.set(name, episodes)
-                    // console.log('fetched episode info:', name)
-                    // console.table(app.cache.get(name))
                 }
 
                 return app.cache.get(name)
@@ -475,6 +487,7 @@
                                 li {
                                     list-style-type: none;
                                     padding: .5rem;
+                                    cursor: pointer;
                                 }
 
                                 li:not(:first-child)[data-actived="true"],
