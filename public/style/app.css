@@ -1,6 +1,8 @@
 :root {
-    --global-color: whitesmoke;
-    --global-bg-color: black;
+    --global-color: 245 245 245;
+    --global-bg-color: 0 0 0;
+    --section-selected-color: 0 255 127;
+    --watched-badge-color: 255 255 224;
 }
 
 * {
@@ -9,8 +11,8 @@
 
 body {
     padding: 1rem;
-    background-color: var(--global-bg-color);
-    color: var(--global-color);
+    background-color: rgb(var(--global-bg-color));
+    color: rgb(var(--global-color));
 }
 
 header {
@@ -24,9 +26,9 @@ button,
     display: block;
     padding: .25rem .5rem;
     min-width: max-content;
-    background-color: var(--global-bg-color);
-    color: var(--global-color);
-    border: solid 1px var(--global-color);
+    background-color: rgb(var(--global-bg-color));
+    color: rgb(var(--global-color));
+    border: solid 1px rgb(var(--global-color));
     border-radius: 5px;
     font-size: 1rem;
     cursor: pointer;
@@ -35,14 +37,14 @@ button,
 
 button:active,
 .function-button:active {
-    background-color: var(--global-color);
-    color: var(--global-bg-color);
+    background-color: rgb(var(--global-color));
+    color: rgb(var(--global-bg-color));
 }
 
 .function-button>select,
 .function-button>select:focus-visible {
-    background-color: var(--global-bg-color);
-    color: var(--global-color);
+    background-color: rgb(var(--global-bg-color));
+    color: rgb(var(--global-color));
     font-size: 1rem;
     margin: 0;
     padding: 0;
@@ -51,12 +53,12 @@ button:active,
 }
 
 .function-button>select:active {
-    background-color: var(--global-color);
-    color: var(--global-bg-color);
+    background-color: rgb(var(--global-color));
+    color: rgb(var(--global-bg-color));
 }
 
 section {
-    border: solid 1px var(--global-color);
+    border: solid 1px rgb(var(--global-color));
     border-radius: 5px;
     padding: .5rem 1rem;
     margin-top: 1rem;
@@ -64,7 +66,7 @@ section {
 }
 
 section[data-selected=true] {
-    border-color: springgreen;
+    border-color: rgb(--section-selected-color);
 }
 
 dt {
@@ -90,7 +92,27 @@ dd {
 a,
 a:active,
 a:visited {
-    color: var(--global-color);
+    color: rgb(var(--global-color));
+}
+
+
+.episode-title::after {
+    position: relative;
+    display: block;
+    content: "[not watch yet] ";
+    color: rgb(var(--watched-badge-color));
+}
+
+.episode-title:hover::after {
+    content: "(click to watched!)";
+}
+
+section[data-watched="true"] .episode-title::after {
+    content: "[watched] ";
+}
+
+section[data-watched="true"] .episode-title:hover::after {
+    content: "(click to unwatched!)";
 }
 
 .episode-description img {

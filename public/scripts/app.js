@@ -4,6 +4,8 @@
  * @property {Map<String|'show-name',String|'rss-url'>} shows
  * @property {Map<String|'episode-name',EpisodeInfo>} cache
  * @property {Map<String|'selected-id',EpisodeInfo>} selected
+ * @property {Set<String|'episode-name'>} watchedEpisode
+ * @property {(title: String, add: Boolean) => void} updateWatchedEpisode
  * @property {Boolean} useCustomElement
  * 
  * 
@@ -32,9 +34,19 @@
         ]),
         cache: new Map(),
         selected: new Map(),
+        watchedEpisode: new Set(JSON.parse(localStorage.getItem('app.watchedEpisode')) || []),
+        updateWatchedEpisode: (title, add = true) => {
+            if (add) {
+                app.watchedEpisode.add(title)
+            } else {
+                app.watchedEpisode.delete(title)
+            }
+            localStorage.setItem('app.watchedEpisode', JSON.stringify(Array.from(app.watchedEpisode)))
+        },
         useCustomElement: new URL(location).searchParams.get('ce') === '0' ? false : true
     }
     window.app = app
+    const FlipBooleanString = { 'true': 'false', 'false': 'true' }
     // main content element
     const elMainContent = document.querySelector('#content')
     // shows-selector element
@@ -99,7 +111,7 @@
     })
     // listen Shortcut to trigger copy-selected event
     window.addEventListener('keydown', e => {
-        if(e.ctrlKey && e.code === 'KeyC'){
+        if (e.ctrlKey && e.code === 'KeyC') {
             elCopySelected.click()
         }
     })
@@ -111,22 +123,10 @@
             mutation.addedNodes.forEach(node => {
                 // except SECTION element
                 if (node.nodeName !== 'SECTION') return;
-                // no-select class elements
-                const elNoSelects = node.querySelectorAll('.no-select')
-                // listen episode-info-section click event
-                node.addEventListener('click', async e => {
-                    const { target } = e
-                    // except no-select class elements inside click event
-                    for(const el of elNoSelects){
-                        if (el.contains(target)) return;
-                    }
-                    // filp select state
-                    changeSectionSelectState(node)
-                })
-                // listen inside copy-button click event
-                node.querySelectorAll('button[data-copy]').forEach(
-                    elCopyButton => elCopyButton.addEventListener('click', () => copyToClipboard(elCopyButton.dataset.copy))
-                )
+
+                listenSectionSelection(node)
+                listenSectionCopyButton(node)
+                listenSectionWatchBadge(node)
             })
         }
     })).observe(elMainContent, { childList: true })
@@ -136,6 +136,52 @@
      */
 
     /**
+     * listen episode-info-section click event
+     * @param {HTMLElement} elSection 
+     */
+    function listenSectionSelection(elSection) {
+        const elNoSelects = elSection.querySelectorAll('.no-select')
+        elSection.addEventListener('click', async e => {
+            const { target } = e
+            // except no-select class elements inside click event
+            for (const el of elNoSelects) {
+                if (el.contains(target)) return;
+            }
+            // filp select state
+            changeSectionSelectState(elSection)
+        })
+    }
+    /**
+     *  listen inside copy-button click event
+     * @param {HTMLElement} elSection 
+     */
+    function listenSectionCopyButton(elSection) {
+        elSection.querySelectorAll('button[data-copy]').forEach(
+            elCopyButton => elCopyButton.addEventListener('click', () => copyToClipboard(elCopyButton.dataset.copy))
+        )
+    }
+    /**
+     * @param {HTMLElement} elSection 
+     */
+    async function listenSectionWatchBadge(elSection) {
+        const { dataset: { name, id } } = elSection
+        const episode_info = (await fetchEpisodeInfo(name))[Number(id)]
+
+        if (app.watchedEpisode.has(episode_info.title)) {
+            elSection.dataset.watched = 'true'
+        }
+
+        elSection.querySelector('.episode-title').addEventListener('click', e => {
+            let { dataset: { watched = 'false' } } = elSection
+
+            watched = FlipBooleanString[watched]
+            elSection.dataset.watched = watched
+            
+            app.updateWatchedEpisode(episode_info.title, watched === 'true')
+        })
+    }
+
+    /**
      * @param {HTMLElement} elSection
      * @param {'false'|'true'|'flip'} state
      */
@@ -143,7 +189,7 @@
         const { dataset: { name, id, selected } } = elSection
         const episodes = await fetchEpisodeInfo(name)
 
-        state = state === 'flip' ? { 'true': 'false', 'false': 'true' }[selected || 'false'] : state
+        state = state === 'flip' ? FlipBooleanString[selected || 'false'] : state
         elSection.dataset.selected = state
 
         if (state === 'true') {
@@ -205,7 +251,7 @@
             <section data-name="${name}" data-id="${index}">
                 <dl>
                     <dt>Title</dt>
-                    <dd>${info.title}</dd>
+                    <dd class="episode-title">${info.title}</dd>
                     <dt>Description</dt>
                     <dd>
                         <div class="episode-description no-select">
@@ -343,8 +389,8 @@
                     return `
                     <style>
                         :host {
-                            --global-color: whitesmoke;
-                            --global-bg-color: black;
+                            --global-color: 245 245 245;
+                            --global-bg-color: 0 0 0;
                         }
 
                         * {
@@ -365,9 +411,9 @@
 
                         ul {
                             min-width: max-content;
-                            background-color: var(--global-bg-color);
-                            color: var(--global-color);
-                            border: solid 1px var(--global-color);
+                            background-color: rgb(var(--global-bg-color));
+                            color: rgb(var(--global-color));
+                            border: solid 1px rgb(var(--global-color));
                             border-radius: 5px;
                             font-size: 1rem;
                         }
@@ -380,12 +426,12 @@
 
                         li:not(:first-child)[data-actived="true"],
                         li:hover {
-                            background-color: var(--global-color);
-                            color: var(--global-bg-color);
+                            background-color: rgb(var(--global-color));
+                            color: rgb(var(--global-bg-color));
                         }
 
                         li:not(:last-child) {
-                            border-bottom: solid 1px var(--global-color);
+                            border-bottom: solid 1px rgb(var(--global-color));
                         }
                     </style>`
                 }
