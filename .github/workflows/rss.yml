@@ -1,0 +1,19 @@
+name: Update RSS resource
+on:
+  schedule:
+    - cron: "0 */12 * * *"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout
+      - name: Run Update Scripts
+        run: |
+          set -xe && \
+          sh update_rss.sh
+          git config user.email "8305727+PIK4@users.noreply.github.com"
+          git config user.name "PIK4"
+          git add rss && \
+          git commit -m 'Update RSS' && \
+          git push
