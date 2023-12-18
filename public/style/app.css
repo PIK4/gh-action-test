@@ -93,13 +93,18 @@ a:visited {
     color: var(--global-color);
 }
 
-.resource_url {
+.episode-description img {
+    width: 50% !important;
+    height: auto !important;
+}
+
+.resource-url {
     display: inline-flex;
     align-items: start;
     gap: 1rem;
 }
 
-.resource_url button {
+.resource-url button {
     padding: .125rem .5rem;
     border-radius: 3px;
 }

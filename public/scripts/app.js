@@ -111,13 +111,15 @@
             mutation.addedNodes.forEach(node => {
                 // except SECTION element
                 if (node.nodeName !== 'SECTION') return;
-                // resource-url-block element
-                const elResourceUrlBlock = node.querySelector('.resource_url')
+                // no-select class elements
+                const elNoSelects = node.querySelectorAll('.no-select')
                 // listen episode-info-section click event
                 node.addEventListener('click', async e => {
                     const { target } = e
-                    // except resource-url-block inside click event
-                    if (elResourceUrlBlock.contains(target)) return;
+                    // except no-select class elements inside click event
+                    for(const el of elNoSelects){
+                        if (el.contains(target)) return;
+                    }
                     // filp select state
                     changeSectionSelectState(node)
                 })
@@ -177,6 +179,7 @@
                     const enclosure = i.querySelector('enclosure').attributes
                     items.push({
                         title: i.querySelector('title').textContent,
+                        description: i.querySelector('description').textContent,
                         reference: i.querySelector('link').textContent,
                         publish_at: new Date(i.querySelector('pubDate').textContent),
                         resource_type: enclosure.type.nodeValue,
@@ -203,13 +206,22 @@
                 <dl>
                     <dt>Title</dt>
                     <dd>${info.title}</dd>
+                    <dt>Description</dt>
+                    <dd>
+                        <div class="episode-description no-select">
+                            <details>
+                                <summary>view</summary>
+                                ${info.description}
+                            </details>
+                        </div>
+                    </dd>
                     <dt>Publish at</dt>
                     <dd>${info.publish_at.toLocaleString()}</dd>
                     <dt>Reference</dt>
                     <dd><cite><a href="${info.reference}">${new URL(info.reference).host}</a></cite></dd>
                     <dt>URL</dt>
                     <dd>
-                        <div class="resource_url">
+                        <div class="resource-url no-select">
                             <button title="Click To Copy!" data-copy="${info.url}">copy</button>
                             <details>
                                 <summary><code>${info.resource_type}</code></summary>
