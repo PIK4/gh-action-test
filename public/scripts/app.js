@@ -43,7 +43,8 @@
             }
             localStorage.setItem('app.watchedEpisode', JSON.stringify(Array.from(app.watchedEpisode)))
         },
-        useCustomElement: new URL(location).searchParams.get('ce') === '0' ? false : true
+        useCustomElement: new URL(location).searchParams.get('ce') === '0' ? false : true,
+        useEpisodeDescription: new URL(location).searchParams.get('ed') === '1'
     }
     window.app = app
     const FlipBooleanString = { 'true': 'false', 'false': 'true' }
@@ -252,15 +253,17 @@
                 <dl>
                     <dt>Title</dt>
                     <dd class="episode-title no-select">${info.title}</dd>
-                    <dt>Description</dt>
-                    <dd>
-                        <div class="episode-description no-select">
-                            <details>
-                                <summary>view</summary>
-                                ${info.description}
-                            </details>
-                        </div>
-                    </dd>
+                    ${app.useEpisodeDescription ? `
+                        <dt>Description</dt>
+                        <dd>
+                            <div class="episode-description no-select">
+                                <details>
+                                    <summary>view</summary>
+                                    ${info.description}
+                                </details>
+                            </div>
+                        </dd>
+                        ` : ''}
                     <dt>Publish at</dt>
                     <dd>${info.publish_at.toLocaleString()}</dd>
                     <dt>Reference</dt>
