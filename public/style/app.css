@@ -66,7 +66,7 @@ section {
 }
 
 section[data-selected=true] {
-    border-color: rgb(--section-selected-color);
+    border-color: rgb(var(--section-selected-color)) !important;
 }
 
 dt {
@@ -102,16 +102,8 @@ a:visited {
     color: rgb(var(--watched-badge-color));
 }
 
-.episode-title:hover::after {
-    content: "(click to watched!)";
-}
-
 section[data-watched="true"] .episode-title::after {
     content: "[watched] ";
-}
-
-section[data-watched="true"] .episode-title:hover::after {
-    content: "(click to unwatched!)";
 }
 
 .episode-description img {

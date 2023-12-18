@@ -176,7 +176,7 @@
 
             watched = FlipBooleanString[watched]
             elSection.dataset.watched = watched
-            
+
             app.updateWatchedEpisode(episode_info.title, watched === 'true')
         })
     }
@@ -251,7 +251,7 @@
             <section data-name="${name}" data-id="${index}">
                 <dl>
                     <dt>Title</dt>
-                    <dd class="episode-title">${info.title}</dd>
+                    <dd class="episode-title no-select">${info.title}</dd>
                     <dt>Description</dt>
                     <dd>
                         <div class="episode-description no-select">
