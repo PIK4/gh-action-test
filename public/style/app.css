@@ -1,0 +1,110 @@
+:root {
+    --global-color: whitesmoke;
+    --global-bg-color: black;
+}
+
+* {
+    margin: 0;
+}
+
+body {
+    padding: 1rem;
+    background-color: var(--global-bg-color);
+    color: var(--global-color);
+}
+
+header {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+button,
+.function-button {
+    display: block;
+    padding: .25rem .5rem;
+    min-width: max-content;
+    background-color: var(--global-bg-color);
+    color: var(--global-color);
+    border: solid 1px var(--global-color);
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+button:active,
+.function-button:active {
+    background-color: var(--global-color);
+    color: var(--global-bg-color);
+}
+
+.function-button>select,
+.function-button>select:focus-visible {
+    background-color: var(--global-bg-color);
+    color: var(--global-color);
+    font-size: 1rem;
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline-style: none;
+}
+
+.function-button>select:active {
+    background-color: var(--global-color);
+    color: var(--global-bg-color);
+}
+
+section {
+    border: solid 1px var(--global-color);
+    border-radius: 5px;
+    padding: .5rem 1rem;
+    margin-top: 1rem;
+    cursor: pointer;
+}
+
+section[data-selected=true] {
+    border-color: springgreen;
+}
+
+dt {
+    font-weight: bold;
+    padding: .25rem 0;
+    user-select: none;
+}
+
+dt::after {
+    content: " :";
+}
+
+dd {
+    padding: 0 1rem;
+    overflow-wrap: anywhere;
+}
+
+dt,
+dd {
+    cursor: default;
+}
+
+a,
+a:active,
+a:visited {
+    color: var(--global-color);
+}
+
+.resource_url {
+    display: inline-flex;
+    align-items: start;
+    gap: 1rem;
+}
+
+.resource_url button {
+    padding: .125rem .5rem;
+    border-radius: 3px;
+}
+
+summary {
+    cursor: pointer;
+    user-select: none;
+}
