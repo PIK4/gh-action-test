@@ -97,7 +97,6 @@ a:visited {
 
 
 .episode-title::after {
-    position: relative;
     display: block;
     content: "[not watch yet] ";
     color: rgb(var(--watched-badge-color));
