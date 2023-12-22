@@ -1,3 +1,23 @@
+@import url('light.css');
+@import url('dark.css');
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+[popover] {
+    --_shadow-color: var(--md-sys-color-primary, rgb(0 0 0));
+    margin: auto;
+    border: none;
+    border-radius: 10px;
+    padding: 2rem;
+}
+
+:focus-visible {
+    outline-color: rgb(0 0 0);
+}
+
 body {
     background-color: lightcyan;
     display: flex;
@@ -9,18 +29,60 @@ header {
     display: flex;
     padding: 1.25rem;
     background-color: aliceblue;
-    background-color: aquamarine;
     width: 100%;
-}
-
-button {
-    padding: .5rem 1rem;
-    background-color: #fff;
-    border: none;
-    border-radius: 100px;
 }
 
 main {
     background-color: aliceblue;
-    
+}
+
+button {
+    --_text-color: var(--text-color, unset);
+    --_bg-color: var(--bg-color, rgb(225 225 225));
+    --_shadow-color: var(--shadow-color, rgb(0 0 0));
+    padding: .5rem 1rem;
+    border: none;
+    border-radius: 100px;
+    color: var(--_text-color);
+    background-color: var(--_bg-color);
+    cursor: pointer;
+}
+
+button.primary {
+    --text-color: rgb(255, 255, 255);
+    --bg-color: var(--md-sys-color-primary);
+}
+
+.import-input-block {
+    --text-color: var(--md-sys-color-primary);
+    --border-color: var(--md-sys-color-primary);
+}
+
+.import-input-block label {
+    --_text-color: var(--text-color, rgb(255 255 255));
+    position: fixed;
+    display: block;
+    max-width: min-content;
+    margin-top: -.5rem;
+    margin-left: .5rem;
+    background: #fff;
+    padding: 0 .25rem;
+    font-size: small;
+    font-weight: bold;
+    font-style: italic;
+    color: var(--_text-color);
+}
+
+textarea {
+    --_border-color: var(--border-color, rgb(0 0 0));
+    min-width: 24rem;
+    min-height: 12rem;
+    padding: .75rem;
+    border: solid 1px;
+    border-color: var(--_border-color);
+    border-radius: 5px;
+}
+
+.buttons {
+    display: flex;
 }
