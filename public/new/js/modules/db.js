@@ -3,16 +3,23 @@
  */
 function deferred(request) {
     return new Promise((resolve, reject) => {
-        if (request.readyState === 'done') {
-            if (request.error) reject(request.error)
-            if (request.result) resolve(request.result)
+        if (request instanceof IDBRequest) {
+            if (request.readyState === 'done') {
+                if (request.error) reject(request.error)
+                if (request.result) resolve(request.result)
+            } else {
+                request.onerror = e => reject(e.target.error)
+                request.onsuccess = e => resolve(e.target.result)
+            }
         } else {
-            request.onsuccess = e => resolve(e.target.result)
-            request.onerror = e => reject(e.target.error)
+            return resolve(request)
         }
     })
 }
 
+/**
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
+ */
 export default class DB {
 
     /**
@@ -20,25 +27,39 @@ export default class DB {
      */
     #db
 
+    #name
+    #version
+    #migration
+
     /**
      * 
      * @param {String} name database name
      * @param {Number} version integer
-     * @param {String[]} stores
      * @param {(db: IDBDatabase) => void} migration 
      */
-    constructor(name, version = 1, migration = db => { }) {
-        this.#db = this.#connect({
-            db_name: name,
-            db_version: version,
-            onupgradeneeded: ({ target: { result } }) => migration(result)
+    constructor(name, version, migration = db => { }) {
+        this.#name = name
+        this.#version = version
+        this.#migration = migration
+        this.#bootstrap()
+    }
+
+    async #bootstrap() {
+        this.#db = await this.#connect({
+            db_name: this.#name,
+            db_version: this.#version,
+            onupgradeneeded: ({ target: { result } }) => this.#migration(result)
+        })
+
+        this.store = new Proxy(this.store, {
+            get: (target, property) => Reflect.apply(target, this, [property])
         })
     }
 
-    async #connect(db_name, db_version = 1, onupgradeneeded = e => { }) {
-        const request_open = window.indexedDB.open(db_name, db_version)
-        request_open.addEventListener('upgradeneeded', onupgradeneeded)
-        return await deferred(request_open)
+    #connect(db_name, db_version = 1, onupgradeneeded = e => { }) {
+        const request = window.indexedDB.open(db_name, db_version)
+        request.addEventListener('upgradeneeded', onupgradeneeded)
+        return deferred(request)
     }
 
     /**
@@ -55,10 +76,33 @@ export default class DB {
     /**
      * 
      * @param {String} store_name 
-     * @param {String|'readonly'|'readwrite'} mode 
+     * @param {'readonly'|'readwrite'} mode 
      * @returns {IDBObjectStore}
      */
     getStore(store_name, mode = 'readonly') {
         return this.getTransaction(store_name, mode).objectStore(store_name)
+    }
+
+    /**
+     * 
+     * @param {String} store_name 
+     * @returns {Proxy<IDBObjectStore>}
+     */
+    store(store_name) {
+        return new Proxy(this.getStore(store_name, 'readonly'), {
+            get: (target, property) => {
+                if (typeof target[property] == 'function') {
+
+                    if (['add', 'put', 'delete', 'deleteIndex', 'clear'].includes(property)) {
+                        target = this.getStore(store_name, 'readwrite')
+                    }
+                    
+                    return (...args) => deferred(Reflect.apply(target[property], target, args))
+                }
+
+                return target[property]
+            }
+        }
+        )
     }
 }
