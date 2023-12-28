@@ -1,86 +1,90 @@
-@import url('light.css');
-@import url('dark.css');
-
-* {
-    margin: 0;
-    padding: 0;
+:root {
+    --primary-color: rgb(141 230 200);
+    --context-color: rgb(240 248 255);
 }
 
 [popover] {
-    --_shadow-color: var(--md-sys-color-primary, rgb(0 0 0));
     margin: auto;
+    padding: 0;
     border: none;
-    border-radius: 10px;
-    padding: 2rem;
+    background-color: transparent;
 }
 
 :focus-visible {
-    outline-color: rgb(0 0 0);
+    outline-color: var(--primary-color);
 }
 
 body {
-    background-color: lightcyan;
     display: flex;
     margin: 0;
     width: 100vw;
+    background-color: var(--context-color);
 }
 
 header {
     display: flex;
-    padding: 1.25rem;
-    background-color: aliceblue;
     width: 100%;
+    padding: 1.25rem;
+    background-color: transparent;
 }
 
 main {
-    background-color: aliceblue;
+    width: 100%;
+    background-color: transparent;
 }
 
 button {
-    --_text-color: var(--text-color, unset);
-    --_bg-color: var(--bg-color, rgb(225 225 225));
-    --_shadow-color: var(--shadow-color, rgb(0 0 0));
+    --text-color: var(--text-color, rgb(255 255 255));
+    --bg-color: var(--bg-color, rgb(0 0 0));
+    --shadow-blur: 5px;
+    --shadow-color: rgb(200 200 200);
     padding: .5rem 1rem;
     border: none;
     border-radius: 100px;
-    color: var(--_text-color);
-    background-color: var(--_bg-color);
+    font-weight: bold;
     cursor: pointer;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    box-shadow: 0 0 var(--shadow-blur) var(--shadow-color);
 }
 
 button.primary {
-    --text-color: rgb(255, 255, 255);
-    --bg-color: var(--md-sys-color-primary);
+    --text-color: rgb(255 255 255);
+    --bg-color: var(--primary-color);
 }
 
 .import-input-block {
-    --text-color: var(--md-sys-color-primary);
-    --border-color: var(--md-sys-color-primary);
+    --text-color: rgb(255 255 255);
+    --label-bg-color: var(--primary-color);
+    --textarea-border-color: rgb(255 255 255);
+    --shadow-blur: 1rem;
+    --shadow-color: rgb(200 200 200);
+    padding: var(--shadow-blur);
 }
 
 .import-input-block label {
-    --_text-color: var(--text-color, rgb(255 255 255));
     position: fixed;
     display: block;
     max-width: min-content;
     margin-top: -.5rem;
-    margin-left: .5rem;
-    background: #fff;
-    padding: 0 .25rem;
+    margin-left: 1rem;
+    padding: .25rem .625rem;
     font-size: small;
     font-weight: bold;
     font-style: italic;
-    color: var(--_text-color);
+    border-radius: 5px;
+    background-color: var(--label-bg-color);
+    color: var(--text-color);
 }
 
-textarea {
-    --_border-color: var(--border-color, rgb(0 0 0));
+.import-input-block textarea {
     min-width: 24rem;
     min-height: 12rem;
-    padding: .75rem;
-    border: solid 1px;
-    border-color: var(--_border-color);
+    margin: 0;
+    padding: 1.25rem 1rem;
+    border: none;
     border-radius: 5px;
+    box-shadow: 0 0 var(--shadow-blur) var(--shadow-color);
 }
 
 .buttons {
