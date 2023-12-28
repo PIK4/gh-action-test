@@ -7,19 +7,24 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>RSS Resolver</title>
     <link rel="stylesheet" href="style/app.css">
+    <script src="scripts/app.js" defer></script>
 </head>
 
 <body>
     <header>
-        <x-dropdown-list id="shows-selector" class="function-button">
-            <select></select>
-        </x-dropdown-list>
-        <button id="select-all" class="function-button">Select All</button>
+        <div>
+            <div></div>
+            <div id="dropdown-list">
+                <ul>
+                    <li><a href="#">-- Select Show --</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- <button id="select-all" class="function-button">Select All</button>
         <button id="reverse-selected" class="function-button">Reverse</button>
-        <button id="copy-selected" class="function-button">Copy Selected</button>
+        <button id="copy-selected" class="function-button">Copy Selected</button> -->
     </header>
     <main id="content"></main>
-    <script src="scripts/app.js"></script>
 </body>
 
 </html>

@@ -126,3 +126,39 @@ summary {
     cursor: pointer;
     user-select: none;
 }
+
+.dropdown-open ~ #dropdown-list {
+    display: block;
+}
+
+#dropdown-list {
+    display: none;
+    position: relative;
+    width: 0;
+    height: 0;
+}
+
+ul {
+    min-width: max-content;
+    background-color: rgb(var(--global-bg-color));
+    color: rgb(var(--global-color));
+    border: solid 1px rgb(var(--global-color));
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+li {
+    list-style-type: none;
+    padding: .5rem;
+    cursor: pointer;
+}
+
+li:not(:first-child)[data-actived="true"],
+li:hover {
+    background-color: rgb(var(--global-color));
+    color: rgb(var(--global-bg-color));
+}
+
+li:not(:last-child) {
+    border-bottom: solid 1px rgb(var(--global-color));
+}

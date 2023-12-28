@@ -18,35 +18,36 @@
  * 
  */
 
-(() => {
+window.app = (() => {
     /**
      * Settings
      */
+
+    const shows = new Map([
+        ['soso no frieren', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/soso_no_frieren.rss.xml'],
+        ['jujutsu kaisen', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/jujutsu_kaisen.rss.xml'],
+        ['spy x framily s02', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/spy_family_s02.rss.xml'],
+    ])
+    const rssCache = new Map()
+    const selected = new Map()
+    const WATCHED_EPISODE_STORE_KEY = 'watched_episode'
+    const watchedEpisode = new Set(JSON.parse(localStorage.getItem(WATCHED_EPISODE_STORE_KEY)) || [])
 
     /** 
      * @type {App} 
      */
     const app = {
-        shows: new Map([
-            ['soso no frieren', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/soso_no_frieren.rss.xml'],
-            ['jujutsu kaisen', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/jujutsu_kaisen.rss.xml'],
-            ['spy x framily s02', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/spy_family_s02.rss.xml'],
-        ]),
-        cache: new Map(),
-        selected: new Map(),
-        watchedEpisode: new Set(JSON.parse(localStorage.getItem('app.watchedEpisode')) || []),
-        updateWatchedEpisode: (title, add = true) => {
-            if (add) {
-                app.watchedEpisode.add(title)
-            } else {
-                app.watchedEpisode.delete(title)
-            }
-            localStorage.setItem('app.watchedEpisode', JSON.stringify(Array.from(app.watchedEpisode)))
+        updateWatchedEpisode({dataset: {title = '', watched = 'false'}} = {}) {
+            if(!title) return;
+
+            watched === 'false' ? watchedEpisode.add(title) : watchedEpisode.delete(title)
+
+            localStorage.setItem(WATCHED_EPISODE_STORE_KEY, JSON.stringify(Array.from(watchedEpisode)))
         },
-        useCustomElement: new URL(location).searchParams.get('ce') === '0' ? false : true,
-        useEpisodeDescription: new URL(location).searchParams.get('ed') === '1'
     }
-    window.app = app
+
+
+
     const FlipBooleanString = { 'true': 'false', 'false': 'true' }
     // main content element
     const elMainContent = document.querySelector('#content')
@@ -65,7 +66,7 @@
 
     // setup shows-selector
     let options = '<option value="">-- Select Show --</option>'
-    for (const [name] of app.shows) {
+    for (const [name] of shows) {
         options += `<option value="${name}">${name}</option>`
     }
     elShowSelector.innerHTML = options
@@ -396,46 +397,6 @@
                             --global-bg-color: 0 0 0;
                         }
 
-                        * {
-                            margin: 0;
-                            padding: 0;
-                        }
-
-                        main.dropdown-open ~ #dropdown-list {
-                            display: block;
-                        }
-
-                        #dropdown-list {
-                            display: none;
-                            position: relative;
-                            width: 0;
-                            height: 0;
-                        }
-
-                        ul {
-                            min-width: max-content;
-                            background-color: rgb(var(--global-bg-color));
-                            color: rgb(var(--global-color));
-                            border: solid 1px rgb(var(--global-color));
-                            border-radius: 5px;
-                            font-size: 1rem;
-                        }
-
-                        li {
-                            list-style-type: none;
-                            padding: .5rem;
-                            cursor: pointer;
-                        }
-
-                        li:not(:first-child)[data-actived="true"],
-                        li:hover {
-                            background-color: rgb(var(--global-color));
-                            color: rgb(var(--global-bg-color));
-                        }
-
-                        li:not(:last-child) {
-                            border-bottom: solid 1px rgb(var(--global-color));
-                        }
                     </style>`
                 }
 
