@@ -1,7 +1,8 @@
 /**
  * 
  * @typedef {Object} App 
- * @property {(name: String|'show-name') => Promise<EpisodeInfo[]>} fetchEpisodeInfo
+ * @property {String} clipboard
+ * @property {(text: String) => void} copyToClipboard
  * 
  * 
  * @typedef {Object} EpisodeInfo
@@ -18,41 +19,79 @@ window.app = (() => {
      * Settings
      */
 
+    /** shows map */
     const shows = new Map([
         ['soso no frieren', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/soso_no_frieren.rss.xml'],
         ['jujutsu kaisen', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/jujutsu_kaisen.rss.xml'],
         ['spy x framily s02', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/spy_family_s02.rss.xml'],
     ])
+    /** RSS resource cache */
     const rssCache = new Map()
-
-    // select-all button element
+    /** select-all button element */
     const elSelectAll = document.querySelector('#select-all')
-    // reverse-selected button element
+    /** reverse-selected button element */
     const elReverseSelected = document.querySelector('#reverse-selected')
-    // copy-selected button element
+    /** copy-selected button element */
     const elCopySelected = document.querySelector('#copy-selected')
+    /** @type {App} expose functions */
+    const app = {
+        clipboard: '',
+    }
+    /** episodes loader */
+    const loadEpisodes = getEpisodeLoader()
+    /** selected episodes listener */
+    const selectedEpisodesListener = getSelectedEpisodesListener()
 
-    // const WATCHED_EPISODE_STORE_KEY = 'watched_episode'
-    // const watchedEpisode = new Set(JSON.parse(localStorage.getItem(WATCHED_EPISODE_STORE_KEY)) || [])
-    // /**
-    //  * @param {Set<String|'episode-name'>} set 
-    //  * @returns {void}
-    //  */
-    // const setWatchedEpisode = set => localStorage.setItem(WATCHED_EPISODE_STORE_KEY, JSON.stringify(Array.from(set)))
+
     /**
+     * Bootstrap
+     */
+
+    // Render Shows List
+    renderShows()
+    // Load Episodes List
+    loadEpisodes()
+    // Listen hash change
+    window.addEventListener('hashchange', loadEpisodes)
+    // Listen selected episodes
+    setInterval(selectedEpisodesListener)
+    // Listen select-all Button
+    elSelectAll.addEventListener('click', () => {
+        document.querySelectorAll('.episode-info').forEach(
+            e => e.querySelector('input[type=checkbox]').checked = true
+        )
+    })
+    // Listen reverse-selected Button
+    elReverseSelected.addEventListener('click', () => {
+        document.querySelectorAll('.episode-info').forEach(e => {
+            let elCheckbox = e.querySelector('input[type=checkbox]')
+            elCheckbox.checked = !elCheckbox.checked
+        })
+    })
+    // Listen copy-selected Button
+    elCopySelected.addEventListener('click', () => copyToClipboard(app.clipboard))
+
+
+    /**
+     * Define Functions
+     */
+
+    /**
+     * extract show-name and selected-episode from hash-string
      * @param {String} hash 
      * @returns {[String|'show-name', Set<String|'selected-episode'>]}
      */
-    const extractHash = hash => {
+    function extractHash(hash) {
         const [show_name = '', selected_episode = ''] = hash.slice(1).split('::')
 
         return [show_name.replaceAll('_', ' '), new Set(selected_episode.split('-'))]
     }
     /**
+     * extract episode infos from xml
      * @param {String} xml 
      * @returns {EpisodeInfo[]}
      */
-    const extractXml = xml => {
+    function extractXml(xml) {
         const xmlDom = (new DOMParser()).parseFromString(xml, 'text/xml')
 
         const items = []
@@ -72,9 +111,29 @@ window.app = (() => {
         return items
     }
     /**
-     * 
+     * fetch expisodes info
+     * @param {String|'show-name'} name 
+     * @returns {Promise<EpisodeInfo[]>}
      */
-    const renderShows = () => {
+    async function fetchEpisodeInfo(name) {
+        let episodes = rssCache.get(name)
+
+        if (!episodes) {
+            const rss_url = shows.get(name)
+
+            episodes = await fetch(rss_url)
+                .then(r => r.text())
+                .then(xml => extractXml(xml))
+
+            rssCache.set(name, episodes)
+        }
+
+        return episodes
+    }
+    /**
+     * render shows list
+     */
+    function renderShows() {
         const elShowList = document.querySelector('#show-list')
 
         const elA = document.createElement('a')
@@ -95,9 +154,9 @@ window.app = (() => {
         })
     }
     /**
-     * episodes loader
+     * get episodes loader
      */
-    const loadEpisodes = (() => {
+    function getEpisodeLoader() {
         const elContent = document.querySelector('#content')
         const elTemplate = document.querySelector('#episode-info').content
         const elSection = elTemplate.querySelector('.episode-info')
@@ -111,7 +170,7 @@ window.app = (() => {
             if (!show_name) return elContent.replaceChildren('')
 
             elContent.replaceChildren(`loading [${show_name}] ..`)
-            const episodes = await app.fetchEpisodeInfo(show_name)
+            const episodes = await fetchEpisodeInfo(show_name)
             elContent.replaceChildren('')
 
             episodes.forEach((info, index) => {
@@ -129,10 +188,41 @@ window.app = (() => {
                 elContent.appendChild(cloneNode)
             })
         }
-    })()
-
+    }
     /**
-     * @param {String} text
+     * get selected episodes listener
+     * @returns {() => void}
+     */
+    function getSelectedEpisodesListener() {
+        let elEpisodeInfoSelectedCount = 0
+
+        return async () => {
+            const elEpisodeInfoSelected = document.querySelectorAll('.episode-info:has(:checked)')
+            if (elEpisodeInfoSelectedCount === elEpisodeInfoSelected.length) return;
+
+            elEpisodeInfoSelectedCount = elEpisodeInfoSelected.length
+
+
+            const url = new URL(location)
+            let [show_name, selected_episode] = extractHash(location.hash)
+
+            const hash_show_name = show_name.replaceAll(' ', '_')
+            const hash_selected_episode = [...elEpisodeInfoSelected.entries()].map(([i, e]) => e.dataset.id).join('-')
+            url.hash = `#${hash_show_name}${hash_selected_episode ? '::' + hash_selected_episode : ''}`
+
+            history.pushState({}, null, url)
+
+            const episodes = await fetchEpisodeInfo(show_name)
+            let clipboard = ''
+            selected_episode.forEach((_, id) => {
+                clipboard += episodes[id].url + '\n'
+            })
+            app.clipboard = clipboard
+        }
+    }
+    /**
+     * copy text to clipboard
+     * @param {String} text 
      */
     async function copyToClipboard(text) {
         try {
@@ -142,78 +232,6 @@ window.app = (() => {
             console.log('copyToClipboard', e)
         }
     }
-
-    /** 
-     * @type {App} 
-     */
-    const app = {
-        clipboard: '',
-        /**
-         * @param {String} name
-         * @return {Promise<EpisodeInfo[]>}
-         */
-        async fetchEpisodeInfo(name) {
-            let episodes = rssCache.get(name)
-
-            if (!episodes) {
-                const rss_url = shows.get(name)
-
-                episodes = await fetch(rss_url)
-                    .then(r => r.text())
-                    .then(xml => extractXml(xml))
-
-                rssCache.set(name, episodes)
-            }
-
-            return episodes
-        },
-    }
-
-    renderShows()
-
-    loadEpisodes()
-    window.addEventListener('hashchange', loadEpisodes)
-
-    let elEpisodeInfoSelectedCount = 0
-    setInterval(async () => {
-        const elEpisodeInfoSelected = document.querySelectorAll('.episode-info:has(:checked)')
-        if (elEpisodeInfoSelectedCount === elEpisodeInfoSelected.length) return;
-
-        elEpisodeInfoSelectedCount = elEpisodeInfoSelected.length
-
-
-        const url = new URL(location)
-        let [show_name, selected_episode] = extractHash(location.hash)
-
-        const hash_show_name = show_name.replaceAll(' ', '_')
-        const hash_selected_episode = [...elEpisodeInfoSelected.entries()].map(([i, e]) => e.dataset.id).join('-')
-        url.hash = `#${hash_show_name}${hash_selected_episode ? '::' + hash_selected_episode : ''}`
-
-        history.pushState({}, null, url)
-
-
-        const episodes = await app.fetchEpisodeInfo(show_name)
-        let clipboard = ''
-        selected_episode.forEach((_, id) => {
-            clipboard += episodes[id].url + '\n'
-        })
-        app.clipboard = clipboard
-    })
-
-    elSelectAll.addEventListener('click', () => {
-        document.querySelectorAll('.episode-info').forEach(e => e.querySelector('input[type=checkbox]').checked = true)
-    })
-
-    elReverseSelected.addEventListener('click', () => {
-        document.querySelectorAll('.episode-info').forEach(e => {
-            let elCheckbox = e.querySelector('input[type=checkbox]')
-            elCheckbox.checked = !elCheckbox.checked
-        })
-    })
-
-    elCopySelected.addEventListener('click', e => {
-        copyToClipboard(app.clipboard)
-    })
 
     return app
 })()
