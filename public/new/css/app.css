@@ -1,0 +1,92 @@
+:root {
+    --primary-color: rgb(141 230 200);
+    --context-color: rgb(240 248 255);
+}
+
+[popover] {
+    margin: auto;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+}
+
+:focus-visible {
+    outline-color: var(--primary-color);
+}
+
+body {
+    display: flex;
+    margin: 0;
+    width: 100vw;
+    background-color: var(--context-color);
+}
+
+header {
+    display: flex;
+    width: 100%;
+    padding: 1.25rem;
+    background-color: transparent;
+}
+
+main {
+    width: 100%;
+    background-color: transparent;
+}
+
+button {
+    --text-color: var(--text-color, rgb(255 255 255));
+    --bg-color: var(--bg-color, rgb(0 0 0));
+    --shadow-blur: 5px;
+    --shadow-color: rgb(200 200 200);
+    padding: .5rem 1rem;
+    border: none;
+    border-radius: 100px;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    box-shadow: 0 0 var(--shadow-blur) var(--shadow-color);
+}
+
+button.primary {
+    --text-color: rgb(255 255 255);
+    --bg-color: var(--primary-color);
+}
+
+.import-input-block {
+    --text-color: rgb(255 255 255);
+    --label-bg-color: var(--primary-color);
+    --textarea-border-color: rgb(255 255 255);
+    --shadow-blur: 1rem;
+    --shadow-color: rgb(200 200 200);
+    padding: var(--shadow-blur);
+}
+
+.import-input-block label {
+    position: fixed;
+    display: block;
+    max-width: min-content;
+    margin-top: -.5rem;
+    margin-left: 1rem;
+    padding: .25rem .625rem;
+    font-size: small;
+    font-weight: bold;
+    font-style: italic;
+    border-radius: 5px;
+    background-color: var(--label-bg-color);
+    color: var(--text-color);
+}
+
+.import-input-block textarea {
+    min-width: 24rem;
+    min-height: 12rem;
+    margin: 0;
+    padding: 1.25rem 1rem;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 0 var(--shadow-blur) var(--shadow-color);
+}
+
+.buttons {
+    display: flex;
+}
