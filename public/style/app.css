@@ -1,15 +1,14 @@
 :root {
-    --global-color: 245 245 245;
-    --global-bg-color: 0 0 0;
-    --section-selected-color: 0 255 127;
-    --watched-badge-color: 255 255 224;
+    --global-color: whitesmoke;
+    --global-bg-color: black;
+    --section-selected-color: springgreen;
 }
 
 body {
     margin: 0;
     padding: 1rem;
-    background-color: rgb(var(--global-bg-color));
-    color: rgb(var(--global-color));
+    background-color: var(--global-bg-color);
+    color: var(--global-color);
 }
 
 header {
@@ -17,7 +16,7 @@ header {
     flex-direction: column;
     flex-wrap: wrap;
     gap: .25rem;
-    border: solid 1px rgb(var(--global-color));
+    border: solid 1px var(--global-color);
     border-radius: 5px;
     padding: .5rem;
 }
@@ -25,12 +24,13 @@ header {
 hr {
     width: 100%;
     border: none;
-    border-bottom: inset 1px rgb(var(--global-color));;
+    border-bottom: inset 1px var(--global-color);;
 }
 
 #show-list,
 .funcitons {
     display: inline-flex;
+    flex-wrap: wrap;
     gap: .5rem;
 }
 
@@ -39,9 +39,9 @@ button,
     display: block;
     padding: .25rem .5rem;
     min-width: max-content;
-    background-color: rgb(var(--global-bg-color));
-    color: rgb(var(--global-color));
-    border: solid 1px rgb(var(--global-color));
+    background-color: var(--global-bg-color);
+    color: var(--global-color);
+    border: solid 1px var(--global-color);
     border-radius: 5px;
     font-size: 1rem;
     cursor: pointer;
@@ -50,15 +50,15 @@ button,
 
 button:active,
 .button:active {
-    background-color: rgb(var(--global-color));
-    color: rgb(var(--global-bg-color));
+    background-color: var(--global-color);
+    color: var(--global-bg-color);
 }
 
 
 a,
 a:active,
 a:visited {
-    color: rgb(var(--global-color));
+    color: var(--global-color);
     text-decoration: none;
 }
 
@@ -68,7 +68,7 @@ summary {
 }
 
 .episode-info {
-    border: solid 1px rgb(var(--global-color));
+    border: solid 1px var(--global-color);
     border-radius: 5px;
     padding: .5rem 1rem;
     margin-top: 1rem;
@@ -77,10 +77,15 @@ summary {
 }
 
 .episode-info .title {
+    margin: 0;
     padding: 1rem;
     font-size: large;
 }
 
+.episode-info summary {
+    margin-left: 1rem;
+}
+
 .episode-info:has(:checked) {
-    border-color: rgb(var(--section-selected-color)) !important;
+    border-color: var(--section-selected-color) !important;
 }
