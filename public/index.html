@@ -12,19 +12,30 @@
 
 <body>
     <header>
-        <div>
-            <div></div>
-            <div id="dropdown-list">
-                <ul>
-                    <li><a href="#">-- Select Show --</a></li>
-                </ul>
-            </div>
+        <div id="show-list">
+            <!-- show list -->
         </div>
-        <!-- <button id="select-all" class="function-button">Select All</button>
-        <button id="reverse-selected" class="function-button">Reverse</button>
-        <button id="copy-selected" class="function-button">Copy Selected</button> -->
+        <hr />
+        <div class="funcitons">
+            <!-- functions -->
+            <button id="select-all" class="button">Select All</button>
+            <button id="reverse-selected" class="button">Reverse</button>
+            <button id="copy-selected" class="button">Copy</button>
+        </div>
     </header>
     <main id="content"></main>
+    <template id="episode-info">
+        <section class="episode-info" data-id="${index}">
+            <label>
+                <input type="checkbox" style="display: none;">
+                <span class="title">${title}</span>
+            </label>
+            <details>
+                <summary><code class="resource-type">${info.resource_type}</code></summary>
+                <code class="resource-url">${info.url}</code>
+            </details>
+        </section>
+    </template>
 </body>
 
 </html>

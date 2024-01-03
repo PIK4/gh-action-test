@@ -5,24 +5,37 @@
     --watched-badge-color: 255 255 224;
 }
 
-* {
-    margin: 0;
-}
-
 body {
+    margin: 0;
     padding: 1rem;
     background-color: rgb(var(--global-bg-color));
     color: rgb(var(--global-color));
 }
 
 header {
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
     flex-wrap: wrap;
+    gap: .25rem;
+    border: solid 1px rgb(var(--global-color));
+    border-radius: 5px;
+    padding: .5rem;
+}
+
+hr {
+    width: 100%;
+    border: none;
+    border-bottom: inset 1px rgb(var(--global-color));;
+}
+
+#show-list,
+.funcitons {
+    display: inline-flex;
     gap: .5rem;
 }
 
 button,
-.function-button {
+.button {
     display: block;
     padding: .25rem .5rem;
     min-width: max-content;
@@ -36,90 +49,17 @@ button,
 }
 
 button:active,
-.function-button:active {
+.button:active {
     background-color: rgb(var(--global-color));
     color: rgb(var(--global-bg-color));
 }
 
-.function-button>select,
-.function-button>select:focus-visible {
-    background-color: rgb(var(--global-bg-color));
-    color: rgb(var(--global-color));
-    font-size: 1rem;
-    margin: 0;
-    padding: 0;
-    border: none;
-    outline-style: none;
-}
-
-.function-button>select:active {
-    background-color: rgb(var(--global-color));
-    color: rgb(var(--global-bg-color));
-}
-
-section {
-    border: solid 1px rgb(var(--global-color));
-    border-radius: 5px;
-    padding: .5rem 1rem;
-    margin-top: 1rem;
-    cursor: pointer;
-}
-
-section[data-selected=true] {
-    border-color: rgb(var(--section-selected-color)) !important;
-}
-
-dt {
-    font-weight: bold;
-    padding: .25rem 0;
-    user-select: none;
-}
-
-dt::after {
-    content: " :";
-}
-
-dd {
-    padding: 0 1rem;
-    overflow-wrap: anywhere;
-}
-
-dt,
-dd {
-    cursor: default;
-}
 
 a,
 a:active,
 a:visited {
     color: rgb(var(--global-color));
-}
-
-
-.episode-title::after {
-    display: block;
-    content: "[not watch yet] ";
-    color: rgb(var(--watched-badge-color));
-}
-
-section[data-watched="true"] .episode-title::after {
-    content: "[watched] ";
-}
-
-.episode-description img {
-    width: 50% !important;
-    height: auto !important;
-}
-
-.resource-url {
-    display: inline-flex;
-    align-items: start;
-    gap: 1rem;
-}
-
-.resource-url button {
-    padding: .125rem .5rem;
-    border-radius: 3px;
+    text-decoration: none;
 }
 
 summary {
@@ -127,38 +67,20 @@ summary {
     user-select: none;
 }
 
-.dropdown-open ~ #dropdown-list {
-    display: block;
-}
-
-#dropdown-list {
-    display: none;
-    position: relative;
-    width: 0;
-    height: 0;
-}
-
-ul {
-    min-width: max-content;
-    background-color: rgb(var(--global-bg-color));
-    color: rgb(var(--global-color));
+.episode-info {
     border: solid 1px rgb(var(--global-color));
     border-radius: 5px;
-    font-size: 1rem;
-}
-
-li {
-    list-style-type: none;
-    padding: .5rem;
+    padding: .5rem 1rem;
+    margin-top: 1rem;
     cursor: pointer;
+    overflow-wrap: anywhere;
 }
 
-li:not(:first-child)[data-actived="true"],
-li:hover {
-    background-color: rgb(var(--global-color));
-    color: rgb(var(--global-bg-color));
+.episode-info .title {
+    padding: 1rem;
+    font-size: large;
 }
 
-li:not(:last-child) {
-    border-bottom: solid 1px rgb(var(--global-color));
+.episode-info:has(:checked) {
+    border-color: rgb(var(--section-selected-color)) !important;
 }
