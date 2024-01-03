@@ -47,29 +47,35 @@ window.app = (() => {
      * Bootstrap
      */
 
-    // Render Shows List
+    // Render shows list
     renderShows()
-    // Load Episodes List
+    // Load episodes list
     loadEpisodes()
     // Listen hash change
     window.addEventListener('hashchange', loadEpisodes)
     // Listen selected episodes
     setInterval(selectedEpisodesListener)
-    // Listen select-all Button
+    // Listen select-all button
     elSelectAll.addEventListener('click', () => {
         document.querySelectorAll('.episode-info').forEach(
             e => e.querySelector('input[type=checkbox]').checked = true
         )
     })
-    // Listen reverse-selected Button
+    // Listen reverse-selected button
     elReverseSelected.addEventListener('click', () => {
         document.querySelectorAll('.episode-info').forEach(e => {
             let elCheckbox = e.querySelector('input[type=checkbox]')
             elCheckbox.checked = !elCheckbox.checked
         })
     })
-    // Listen copy-selected Button
+    // Listen copy-selected button 
     elCopySelected.addEventListener('click', () => copyToClipboard(app.clipboard))
+    // Listen shortcut
+    window.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.code === 'KeyC') {
+            copyToClipboard(app.clipboard)
+        }
+    })
 
 
     /**
@@ -82,9 +88,9 @@ window.app = (() => {
      * @returns {[String|'show-name', Set<String|'selected-episode'>]}
      */
     function extractHash(hash) {
-        const [show_name = '', selected_episode = ''] = hash.slice(1).split('::')
+        const [show_name = '', selected_episode] = hash.slice(1).split('::')
 
-        return [show_name.replaceAll('_', ' '), new Set(selected_episode.split('-'))]
+        return [show_name.replaceAll('_', ' '), new Set(selected_episode?.split('-'))]
     }
     /**
      * extract episode infos from xml
@@ -202,22 +208,22 @@ window.app = (() => {
 
             elEpisodeInfoSelectedCount = elEpisodeInfoSelected.length
 
-
             const url = new URL(location)
-            let [show_name, selected_episode] = extractHash(location.hash)
+            const [show_name] = extractHash(location.hash)
+            const selected_episode = [...elEpisodeInfoSelected.entries()].map(([i, e]) => e.dataset.id)
 
             const hash_show_name = show_name.replaceAll(' ', '_')
-            const hash_selected_episode = [...elEpisodeInfoSelected.entries()].map(([i, e]) => e.dataset.id).join('-')
+            const hash_selected_episode = selected_episode.join('-')
             url.hash = `#${hash_show_name}${hash_selected_episode ? '::' + hash_selected_episode : ''}`
 
-            history.pushState({}, null, url)
+            history.replaceState({}, null, url)
 
             const episodes = await fetchEpisodeInfo(show_name)
             let clipboard = ''
-            selected_episode.forEach((_, id) => {
+            selected_episode.forEach(id => {
                 clipboard += episodes[id].url + '\n'
             })
-            app.clipboard = clipboard
+        app.clipboard = clipboard
         }
     }
     /**
