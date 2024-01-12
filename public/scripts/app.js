@@ -24,6 +24,7 @@ window.app = (() => {
         ['soso no frieren', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/soso_no_frieren.rss.xml'],
         ['jujutsu kaisen', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/jujutsu_kaisen.rss.xml'],
         ['spy x framily s02', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/spy_family_s02.rss.xml'],
+        ['danjon meshi', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/danjon_meshi.rss.xml'],
     ])
     /** RSS resource cache */
     const rssCache = new Map()
