@@ -25,6 +25,7 @@ window.app = (() => {
         ['jujutsu kaisen', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/jujutsu_kaisen.rss.xml'],
         ['spy x framily s02', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/spy_family_s02.rss.xml'],
         ['danjon meshi', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/danjon_meshi.rss.xml'],
+        ['kusuriya no hitorigoto', 'https://raw.githubusercontent.com/PIK4/gh-action-test/main/rss/kusuriya_no_hitorigoto.rss.xml'],
     ])
     /** RSS resource cache */
     const rssCache = new Map()
